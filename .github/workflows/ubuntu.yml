@@ -1,0 +1,38 @@
+name: Ubuntu
+on:
+  push:
+    paths:
+      - "watchdog.c"
+      - "CMakeLists.txt"
+      - ".github/workflows/ubuntu.yml"
+  pull_request:
+    paths:
+      - "watchdog.c"
+      - "CMakeLists.txt"
+      - ".github/workflows/ubuntu.yml"
+
+jobs:
+  build:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install checkinstall python3-pip
+          sudo python3 -m pip install cmake
+      - name: build
+        run: |
+          cmake -B build
+          cmake --build build
+      - name: package
+        run: |
+          sudo checkinstall -D -y cmake --install build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: watchdog-debian-package
+          path: watchdog*.deb
